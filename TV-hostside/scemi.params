@@ -1,0 +1,38 @@
+// Sce-Mi parameters file generated on: Tue Feb 12 07:19:03 EST 2019
+// By: Bluespec scemilink utility, version 2017.07.A (build e1df8052c, 2017-07-21)
+
+// ObjectKind Index AttributeName Value
+
+OutputPipe 0 TransactorName ""
+OutputPipe 0 PipeName       "scemi_xcomms_tx_outpipe"
+OutputPipe 0 PipeWidth      656
+OutputPipe 0 PipeDepth      1024
+OutputPipe 0 Visibility     "Fifo"
+OutputPipe 0 PipeNum        0
+OutputPipe 0 Type           "Tuple2#(Bit#(624),Bit#(32))"
+
+InputPipe 0 TransactorName ""
+InputPipe 0 PipeName       "scemi_xcomms_rx_inpipe"
+InputPipe 0 PipeWidth      176
+InputPipe 0 PipeDepth      1024
+InputPipe 0 Visibility     "Fifo"
+InputPipe 0 PipeNum        0
+InputPipe 0 Type           "Tuple2#(Bit#(144),Bit#(32))"
+
+ClockBinding 0 TransactorName ""
+ClockBinding 0 ClockName      "?"
+
+MessageOutPort 0 TransactorName ""
+MessageOutPort 0 PortName       "scemi_dut_prb_control_data_out"
+MessageOutPort 0 PortWidth      32
+MessageOutPort 0 ChannelId      0
+MessageOutPort 0 Type           "Bit#(32)"
+
+MessageInPort 0 TransactorName ""
+MessageInPort 0 PortName       "scemi_dut_prb_control_control_in"
+MessageInPort 0 PortWidth      17
+MessageInPort 0 ChannelId      0
+MessageInPort 0 Type           "SceMiSerialProbe::ProbeControl"
+
+Link 0 LinkType "PCIE_VURTEXU"
+Link 0 DeviceName "/dev/bluenoc_1"

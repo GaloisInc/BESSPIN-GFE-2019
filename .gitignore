@@ -1,0 +1,33 @@
+# generated output folders
+vivado
+testing/scripts/logs
+# compiled files
+bootrom/bootrom.bin
+bootrom/bootrom.img
+bootrom/bootrom.hex
+bootrom/bootrom.mem
+bootrom/bootrom.bytereversed.mem
+bootrom/bootrom.dump
+
+flash-scripts/*.mcs
+flash-scripts/*.log
+flash-scripts/*.jou
+*.jou
+*.log
+
+bluenoc/drivers/.bluenoc.*
+bluenoc/drivers/*.o
+bluenoc/bluenoc/bluenoc
+bluenoc/bluenoc/clocking.o
+bluenoc/drivers/.tmp_versions/
+bluenoc/drivers/Module.symvers
+bluenoc/drivers/bluenoc.ko
+bluenoc/drivers/bluenoc.mod.c
+bluenoc/drivers/modules.order
+
+testing/baremetal/build
+*.pyc
+test_32.gdb
+test_64.gdb
+# filesystem artifacts
+._*

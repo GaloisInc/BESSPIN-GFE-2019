@@ -1,0 +1,58 @@
+#!/bin/sh
+# A Tcl comment, whose contents don't matter \
+if command -v vivado; then CMD=vivado ; else CMD=vivado_lab ;fi && exec $CMD -mode batch -source "$0" -tclargs usr_$USER "$@"
+
+if { [expr $argc < 2] } {
+    error "usage: program_flash.tcl bitfile|datafile <file>"
+}
+
+set u [lindex $argv 0]
+set t [lindex $argv 1]
+set f [lindex $argv 2]
+
+# index of board, if there are more than one
+set index {0}
+set tmpfile "/tmp/flash_${u}.mcs"
+
+if {[string equal "$t" "bitfile"] } {
+    write_cfgmem -force -format MCS -size 256 -interface SPIx8 -loadbit "up 0x00000000 $f" ${tmpfile}
+    set files [list "/tmp/flash_${u}_primary.mcs" "/tmp/flash_${u}_secondary.mcs" ]
+    #set prmfiles [list "/tmp/flash_primary.prm" "/tmp/flash_secondary.prm" ]
+} {
+    write_cfgmem -force -format MCS -size 128 -interface SPIx4 -loaddata "up 0x04000000 $f" ${tmpfile}
+    set files [list ${tmpfile} ]
+    #set prmfiles [list "/tmp/flash.prm" ]
+}
+
+set_param xicom.use_bitstream_version_check false
+open_hw
+catch {disconnect_hw_server}
+connect_hw_server
+current_hw_target [get_hw_targets */xilinx_tcf/Digilent/*]
+set_property PARAM.FREQUENCY 15000000 [get_hw_targets */xilinx_tcf/Digilent/*]
+open_hw_target
+current_hw_device [lindex [get_hw_devices xcvu9p_0] $index]
+refresh_hw_device -update_hw_probes false [current_hw_device]
+create_hw_cfgmem -hw_device [current_hw_device] -mem_dev [lindex [get_cfgmem_parts {mt25qu01g-spi-x1_x2_x4_x8}] 0]
+
+set_property -dict [ list \
+			 PROGRAM.ADDRESS_RANGE {use_file} \
+			 PROGRAM.FILES $files \
+			 PROGRAM.UNUSED_PIN_TERMINATION {pull-none} \
+			 PROGRAM.BLANK_CHECK 0 \
+			 PROGRAM.ERASE 1 \
+			 PROGRAM.CFG_PROGRAM 1 \
+			 PROGRAM.VERIFY 1 \
+			 PROGRAM.CHECKSUM 0 \
+			] [current_hw_cfgmem]
+
+if {![string equal [get_property PROGRAM.HW_CFGMEM_TYPE [current_hw_device]] [get_property MEM_TYPE [get_property CFGMEM_PART [current_hw_cfgmem]]] ]} {
+    create_hw_bitstream -hw_device [current_hw_device] [get_property PROGRAM.HW_CFGMEM_BITFILE [current_hw_device]]
+    program_hw_devices
+}
+
+program_hw_cfgmem -hw_cfgmem [current_hw_cfgmem]
+
+close_hw_target
+disconnect_hw_server
+close_hw

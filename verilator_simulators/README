@@ -1,0 +1,139 @@
+INTRODUCTION
+
+This directory provides for the simulation and testing of the GFE processors
+using the Verilator HDL simulator.  It was tested using Verilator 3.916.
+Although the contents of this directory have been provided by Bluespec Inc.,
+none of it requires a Bluespec licence.  It takes the processor RTL from
+bluespec-processors or chisel_processors, so it uses the same code as the
+syntheses for FPGA emulation.  The remainder of the system (AXI interconnect,
+memory model, boot ROM, flash memory, UART) is provided in RTL which is a
+close approximation of the Xilinx block diagram GFE system; in particular, the
+address map is identical.
+
+
+STRUCTURE
+
+obj_dir
+If present, this is a working directory.
+
+procs
+This contains subdirectories bluespec_p1, bluespec_p2, bluespec_p3, chisel_p1,
+chisel_p2 and chisel_p3.  These contain material specific to each particular
+processor. In particular, they contain RTL definitions of the boot ROM and
+Flash memory contents, in case these need to be different for different
+processors, and the Include.mk file in each of the processor subdirectories
+sets the location for the processor Verilog to the same location used for
+vivado builds.
+
+Resources
+This contains material for preparing input for the Verilator simulator.
+
+run
+This contains material required for running simulations; its contents are
+described in more detail below.
+
+src_C
+This contains C and C++ sources imported by the simulator, mainly for I/O and
+communication (in some modes of operation) with a host program running in a
+separate process.
+
+Verilog_RTL
+This contains the RTL for the SoC (the entire system except for the processors
+themselves, which are in separate directories).
+
+
+FACILITIES
+
+Note that many of the Makefile targets require an argument of the form (e.g.)
+   PROC=bluespec_p1
+to specify the relevant processor.
+
+In the main directory:
+
+make simulator PROC=<proc>
+compile an executable simulator, which will be placed in the "run" directory
+under the name
+   exe_HW_<proc>_sim
+This will when required use a vpi port for connection to openocd.
+
+make jtag_simulator PROC=<proc>
+compile an executable simulator, which will be placed in the "run" directory
+also under the name
+   exe_HW_<proc>_sim
+This will, when required, use a serial jtag port (very slow) for connection to
+openocd.
+
+In the "run" directory:
+
+Running elf files in standalone mode
+
+"Standalone mode" means without using gdb.  When running a program in
+standalone mode, its .elf file is first translated by the elf_to_hex program
+into a .hex file, which is preloaded into the simulator without the use of
+gdb.  The simulator is started afresh for each program.  Note that when the
+simulator starts in this mode it will first execute its boot ROM and (if the
+boot ROM contents are standard) some instructions in the Flash memory.  The
+start address of the preloaded program should be consistent with this
+(i.e. it should normally be 0x_C000_0000).
+ The simulator may be instructed (by the +tohost argument) to terminate when a
+write is detected to the "tohost" variable (this has been a standard mechanism
+for terminating ISA tests).  It may also be terminated by CTRL-C.
+ Note that even though the simulator is running standalone, it nevertheless
+opens jtag and vpi ports, in case it is to be run with gdb.  (Attaching gdb to
+a simulation started in standalone mode has, however, not yet been tested.)
+The problems described below might therefore arise if several uses are running
+simulations on the same machine.  If this is the case, the disambiguating
+"+vpi_port=<number>" and "+jtag_port=<number>" arguments must be written into
+the Makefile itself.
+
+make smoke_test PROC=<proc>
+run a smoke-test by way of a single test.  The test is specified in the
+Makefile as rv{32,64}ui-p-add.
+
+make isa_tests PROC=<proc>
+run all the ISA tests appropriate to the processor architecture, which is
+specified in the procs/<proc>/Include.mk file.  By default this uses four
+worker processes to run four tests concurrently (under control of a Python
+script).
+
+make run_example PROC=<proc>
+runs the .elf file specified in the run/Makefile variable EXAMPLE.  Unless the
+.elf file follows the "tohost" termination convention, execution might have to
+be terminated manually (by CTRL-C).
+
+Tests controlled by gdb:
+
+In this mode, the simulator is invoked by name (e.g. ./exe_HW_bluespec_p1_sim)
+in one window, and then gdb is invoked in another window.  (Depending on the
+contents of the boot ROM and the Flash memory, since the main memory model is
+uninitialized, the processor will probably end up in a tight
+illegal-instruction loop until gdb gains control and halts it.)
+
+If waves are desired, a "+trace" argument should be given.
+
+If the simulator was built by "make simulator" (see above) it will by default
+expect a connection on the default vpi_port (5555).  If other users are
+simulating on the same machine, they must all use different ports, which may
+be specified by a "+vpi_port=<number>" argument.  If the simulator was built
+by "make jtag_simulator", similar considerations apply to the jtag_port
+(default 5550).
+
+The file "openocd.cfg" should be made consistent with the decisions described
+in the preceding paragraph.  The supplied version is consistent with the use
+of the default vpi_port.  If the jtag simulator is to be used, the
+   set INTERFACE vpi
+line should be commented out, and the
+   set INTERFACE rbb
+("remote bitbang") should be made active; the value of the debug_port should
+also be amended if necessary.  (Note: the "set INTERFACE xilinx" line is for
+use when connecting openocd to a FPGA.)
+
+riscv32-unknown-elf-gdb --command test-all32.gdb
+riscv32-unknown-elf-gdb --command test-all.gdb
+Run a regression under control of the specified gdb script (test-all32.gdb for
+a P1 processor, test-all.gdb for a P2 one).  Note that the gdb program,
+despite its name, can handle both rv32 and rv64 processors.
+
+riscv32-unknown-elf-gdb --command init.gdb
+This will set up an interactive gdb session, within which an .elf file can be
+specified, loaded and run (with breakpoints) in the usual way.

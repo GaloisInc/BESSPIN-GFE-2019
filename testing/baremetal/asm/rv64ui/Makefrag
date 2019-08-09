@@ -1,0 +1,12 @@
+#=======================================================================
+# Makefrag for rv64ui tests
+#-----------------------------------------------------------------------
+
+rv64ui_sc_tests = \
+	uart \
+    uart_interrupt \
+	add \
+
+rv64ui_p_tests = $(addprefix rv64ui-p-, $(rv64ui_sc_tests))
+
+spike64_tests += $(rv64ui_p_tests)

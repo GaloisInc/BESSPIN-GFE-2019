@@ -1,0 +1,32 @@
+The two scripts in this directory,
+   make_spi_mcs.tcl
+   program_spi.tcl
+respectively convert a .bit file into a pair of .mcs files, and load those
+files into the dual flash memory units on the VCU118.  They should be invoked
+by a line such as
+   vivado -mode batch -source <script file>
+"make_spi_mcs.tcl" assumes the bitfile is named fpga.bit in the current
+directory.
+
+After the flash memory has been loaded in this way, and assuming that the
+switches on the board are correctly set(*), power cycling the board should
+program the FPGA with the contents.  The FPGA may also be booted from the
+flash memory by giving the "Boot from Configuration Memory Device" command
+from Vivado's hardware manager.
+
+Note that the bitfile must have been generated with constraints specifying its
+destination.  The following constraints should be incorporated into the
+design's .xdc file(s).
+   set_property CONFIG_MODE SPIx8 [current_design]
+   set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 8 [current_design]
+   set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+These properties seem not to affect Vivado's ability to load the FPGA directly
+through jtag.  Compression is necessary because otherwise the bitfile will not
+fit into the conversion program.
+
+(A further script, for reading back the contents into a file, for verification
+of the transfer, is under construction.)
+
+
+(*) See the User Guide: set SW16 to 0001, position1->position4; it's probably
+in this position already.

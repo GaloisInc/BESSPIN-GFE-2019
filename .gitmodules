@@ -1,0 +1,32 @@
+[submodule "chisel_processors"]
+	path = chisel_processors
+	url = ../chisel_processors.git
+	branch = update_p1_chisel
+[submodule "bluespec-processors/P1/Piccolo"]
+	path = bluespec-processors/P1/Piccolo
+	url = https://github.com/bluespec/Piccolo.git
+[submodule "FreeRTOS-mirror"]
+	path = FreeRTOS-mirror
+	url = ../FreeRTOS-mirror.git
+[submodule "bluespec-processors/P2/Flute"]
+	path = bluespec-processors/P2/Flute
+	url = https://github.com/bluespec/Flute.git
+[submodule "riscv-linux"]
+	path = riscv-linux
+	url = ../riscv-linux.git
+[submodule "bluespec-processors/P3/Tuba"]
+	path = bluespec-processors/P3/Tuba
+	url = https://github.com/bluespec/Tuba.git
+[submodule "riscv-pk"]
+	path = riscv-pk
+	url = ../riscv-pk.git
+[submodule "riscv-tests"]
+	path = riscv-tests
+	url = ../riscv-tests.git
+[submodule "tool-suite"]
+	path = tool-suite
+	url = ../tool-suite.git
+	branch = develop
+[submodule "busybox"]
+	path = busybox
+	url = https://github.com/mirror/busybox.git

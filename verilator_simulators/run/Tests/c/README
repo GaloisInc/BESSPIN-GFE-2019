@@ -1,0 +1,43 @@
+Copyright (c) 2017 Bluespec, Inc.  All Rights Reserved.
+
+They were originally from MIT, for SMIPS tests.
+These versions: modified at Bluespec, for RISC-V tests
+
+In each directory, 'make' should cross-compile the C program using the
+riscv-gcc compiler to create a RISC-V ELF file.
+
+Please refer to the RISC-V Training slides in the Docs directory for details.
+
+To build tests for RV32:
+make 
+make install
+
+To build tests for RV64:
+make XLEN=64
+make install XLEN=64
+
+If you are building tests for both RV32 and RV64, please complete both steps for
+one setting of XLEN before proceeding to the next
+
+To clean all RV32 binaries from the individual test directories
+make clean
+
+To clean all RV32 binaries including does installed
+make full_clean
+
+To clean all RV64 binaries from the individual test directories
+make clean RV_XLEN=64
+
+To clean all RV64 binaries including does installed
+make full_clean XLEN=64
+
+# Creating a new test
+---------------------
+An empty test with the boilerplate in place to create a self checking test is in
+the TestTemplate directory. 
+
+1. cp -r TestTemplate <your-test-name>
+2. mv <your-test-name>/TestTemplate.c <your-test-name>/<your-test-name>.c
+3. Edit <your-test-name>/<your-test-name>.c
+4. Add <your-test-name> to the SUBDIRS list in the Makefile
+5. Run make and make install with the appropriate command line options

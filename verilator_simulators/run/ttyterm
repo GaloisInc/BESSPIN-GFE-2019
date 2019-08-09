@@ -1,0 +1,20 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+    dev=/dev/serial/by-id/usb-Silicon_Labs_CP2105_Dual_USB_to_UART_Bridge_Controller_007F68B4-if01-port0
+else
+    dev=$1
+fi
+
+if [ ! "$2" ]; then
+    rate=b115200
+else
+    rate=b$2
+fi
+
+if [ ! -e "$dev" ]; then
+    echo "usage: `basename $0` device"
+    exit
+fi
+
+socat -,raw,echo=0,escape=4,crnl $dev,$rate,raw,echo=0

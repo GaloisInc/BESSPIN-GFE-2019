@@ -1,0 +1,125 @@
+#if CPU_SPEED == 0
+#if __riscv_xlen == 32
+#define CPU_SPEED 500000000
+#else
+#define CPU_SPEED 680000000
+#endif
+#endif
+
+/dts-v1/;
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "unknown,unknown";
+	model = "unknown,unknown";
+	chosen {
+		bootargs = "earlyprintk console=ttyS0,115200 loglevel=15";
+                stdout-path = &ns16550;
+	};
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		timebase-frequency = <CPU_SPEED>;
+		CPU0: cpu@0 {
+			device_type = "cpu";
+			reg = <0>;
+			status = "okay";
+			compatible = "riscv";
+#if __riscv_xlen == 32
+			riscv,isa = "rv32imac";
+#else
+			riscv,isa = "rv64imafdc";
+			mmu-type = "riscv,sv39";
+#endif
+			clock-frequency = <CPU_SPEED>;
+			dmas = <&axi_dma 0>, <&axi_dma 1>;
+			dma-names = "tx", "rx";
+			CPU0_intc: interrupt-controller {
+				#interrupt-cells = <1>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+	};
+	memory {
+		device_type = "memory";
+		reg = <0xC0000000 0x40000000>;
+	};
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		reserved: ethernet@62100000 {
+			compatible = "shared-dma-pool";
+			no-map;
+			reg = <0x80000000 0x40000000>;
+			linux,dma-default;
+		};
+	};
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "simple-bus";
+		ranges;
+		clint@10000000 {
+			compatible = "riscv,clint0";
+			interrupts-extended = <&CPU0_intc 3 &CPU0_intc 7>;
+			reg = <0x10000000 0x10000>;
+		};
+		plic: interrupt-controller@11000000 {
+			#interrupt-cells = <1>;
+			compatible = "riscv,plic0";
+			interrupt-controller;
+			interrupts-extended = <&CPU0_intc 11 &CPU0_intc 9>;
+			reg = <0xc000000 0x400000>;
+			reg-names = "control";
+			riscv,max-priority = <7>;
+			riscv,ndev = <16>;
+		};
+		axi_ethernet_eth: ethernet@62100000 {
+			compatible = "xlnx,axi-ethernet-7.01.a", "xlnx,axi-ethernet-1.00.a";
+			memory-region = <&reserved>;
+			device_type = "network";
+			interrupts-extended = <&plic 2>;
+			axistream-connected = <&axi_dma>;
+			axistream-connected-control = <&axi_dma>;
+			phy-mode = "sgmii";
+			reg = <0x62100000 0x40000>;
+			xlnx,rxcsum = <0x2>;
+			xlnx,rxmem = <0x1000>;
+			xlnx,txcsum = <0x2>;
+			xlnx,phy-type = <0x4>;
+			phy-handle = <&phy0>;
+			xlnx,vcu118;
+			local-mac-address = [00 0a 35 04 db 5a];
+			clock-frequency = <CPU_SPEED>;
+			axi_ethernet_mdio: mdio {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				phy0: phy@3 {
+				      device_type = "ethernet-phy";
+				      ti,fifo-depth = <1>;
+				      reg = <3>;
+				};
+			};
+		};
+		axi_dma: dma@62200000 {
+			#dma-cells = <1>;
+			compatible = "xlnx,eth-dma";
+			reg = <0x62200000 0x10000>;
+			interrupts-extended = <&plic 3 &plic 4>;
+			axistream-connected = <&axi_ethernet_eth>;
+			axistream-connected-control = <&axi_ethernet_eth>;
+		};
+		ns16550: uart@62300000 {
+			current-speed = <115200>;
+			compatible = "ns16550a";
+			interrupts-extended = <&plic 1>;
+			reg = <0x62300000 0x1000>;
+			clock-frequency = <CPU_SPEED>;
+			reg-shift = <2>;
+		};
+	};
+};

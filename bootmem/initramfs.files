@@ -1,0 +1,9 @@
+dir /dev 0755 0 0
+nod /dev/console 0600 0 0 c 5 1
+dir /proc 0755 0 0
+dir /sys 0755 0 0
+dir /tmp 1777 0 0
+dir /root 0700 0 0
+dir /etc 0755 0 0
+dir /etc/init.d 0755 0 0
+slink /init bin/busybox 0777 0 0

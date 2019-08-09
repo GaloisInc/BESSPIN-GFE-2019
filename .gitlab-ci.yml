@@ -1,0 +1,209 @@
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - riscv-linux/
+    - busybox/
+
+#-----------------------------------------------------------------------------#
+#
+# General startup commands
+#
+#-----------------------------------------------------------------------------#
+before_script:
+    - ./init_submodules.sh
+
+#-----------------------------------------------------------------------------#
+#
+# FPGA tests
+#
+#-----------------------------------------------------------------------------#
+bluespec_p1:
+  script:
+    - source /opt/Xilinx/Vivado_Lab/2017.4/settings64.sh
+    - nix-shell --run './test_processor.sh bluespec_p1 --full_ci'
+  tags: ["fpga"]
+  only:
+    - develop
+  except:
+    - schedules
+
+chisel_p1:
+  script:
+    - source /opt/Xilinx/Vivado_Lab/2017.4/settings64.sh
+    - nix-shell --run './test_processor.sh chisel_p1 --full_ci'
+  tags: ["fpga"]
+  only:
+    - develop
+  except:
+    - schedules
+
+chisel_p2:
+  script:
+    - source /opt/Xilinx/Vivado_Lab/2017.4/settings64.sh
+    - nix-shell --run './test_processor.sh chisel_p2'
+  after_script:
+    - echo "Cleaning debian chroot"
+    - rm -rf debian/riscv64-chroot
+  tags: ["fpga"]
+  only:
+    variables:
+      - $JOB_TYPE == "chisel_p2"
+
+bluespec_p2:
+  script:
+    - source /opt/Xilinx/Vivado_Lab/2017.4/settings64.sh
+    - nix-shell --run './test_processor.sh bluespec_p2'
+  after_script:
+    - echo "Cleaning debian chroot"
+    - rm -rf debian/riscv64-chroot
+  tags: ["fpga"]
+  only:
+      variables:
+      - $JOB_TYPE == "bluespec_p2"
+
+chisel_p3: # currently fails
+  script:
+    - source /opt/Xilinx/Vivado_Lab/2017.4/settings64.sh
+    - nix-shell --run './test_processor.sh chisel_p3 --full_ci'
+  tags: ["fpga"]
+  only:
+      variables:
+      - $JOB_TYPE == "chisel_p3"
+
+bluespec_p3: # currently fails
+  script:
+    - source /opt/Xilinx/Vivado_Lab/2017.4/settings64.sh
+    - nix-shell --run './test_processor.sh bluespec_p3 --full_ci'
+  tags: ["fpga"]
+  only:
+      variables:
+      - $JOB_TYPE == "bluespec_p3"
+
+#-----------------------------------------------------------------------------#
+#
+# Bitstream generation
+#
+#-----------------------------------------------------------------------------#
+bitstream_gen:
+    script:
+      - export XILINXD_LICENSE_FILE=/opt/Xilinx/Xilinx.lic
+      - source /opt/Xilinx/Vivado/2017.4/settings64.sh
+      - echo "Building chisel_p1 bitstream"
+      - nix-shell --run './setup_soc_project.sh chisel_p1'
+      - nix-shell --run './build.sh chisel_p1'
+      - echo "chisel_p1 bitstream complete"
+      - echo "Building bluespec_p1 bitstream"
+      - nix-shell --run './setup_soc_project.sh bluespec_p1'
+      - nix-shell --run './build.sh bluespec_p1'
+      - echo "bluespec_p1 bitstream complete"
+      - echo "Building chisel_p2 bitstream"
+      - nix-shell --run './setup_soc_project.sh chisel_p2'
+      - nix-shell --run './build.sh chisel_p2'
+      - echo "chisel_p2 bitstream complete"
+      - echo "Building bluespec_p2 bitstream"
+      - nix-shell --run './setup_soc_project.sh bluespec_p2'
+      - nix-shell --run './build.sh bluespec_p2'
+      - echo "bluespec_p2 bitstream complete"
+      - echo "Building chisel_p3 bitstream"
+      - nix-shell --run './setup_soc_project.sh chisel_p3'
+      - nix-shell --run './build.sh chisel_p3'
+      - echo "chisel_p3 bitstream complete"
+      - echo "Building bluespec_p3 bitstream"
+      - nix-shell --run './setup_soc_project.sh bluespec_p3'
+      - nix-shell --run './build.sh bluespec_p3'
+      - echo "bluespec_p3 bitstream complete"
+    tags: ["bitstream"]
+    artifacts:
+        name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+        when: always
+        expire_in: 1 week
+        paths:
+            - bitstreams/soc_chisel_p1.*
+            - vivado/soc_chisel_p1/soc_chisel_p1.runs/impl_1/design_1_timing_summary_routed.rpt 
+            - vivado/soc_chisel_p1/soc_chisel_p1.runs/impl_1/design_1_utilization_placed.rpt 
+            - vivado/soc_chisel_p1/soc_chisel_p1.runs/impl_1/design_1_power_routed.rpt 
+            - bitstreams/soc_chisel_p2.*
+            - vivado/soc_chisel_p2/soc_chisel_p2.runs/impl_1/design_1_timing_summary_routed.rpt 
+            - vivado/soc_chisel_p2/soc_chisel_p2.runs/impl_1/design_1_utilization_placed.rpt 
+            - vivado/soc_chisel_p2/soc_chisel_p2.runs/impl_1/design_1_power_routed.rpt 
+            - bitstreams/soc_chisel_p3.*
+            - vivado/soc_chisel_p3/soc_chisel_p3.runs/impl_1/design_1_timing_summary_routed.rpt 
+            - vivado/soc_chisel_p3/soc_chisel_p3.runs/impl_1/design_1_utilization_placed.rpt 
+            - vivado/soc_chisel_p3/soc_chisel_p3.runs/impl_1/design_1_power_routed.rpt 
+            - bitstreams/soc_bluespec_p1.*
+            - vivado/soc_bluespec_p1/soc_bluespec_p1.runs/impl_1/design_1_timing_summary_routed.rpt 
+            - vivado/soc_bluespec_p1/soc_bluespec_p1.runs/impl_1/design_1_utilization_placed.rpt 
+            - vivado/soc_bluespec_p1/soc_bluespec_p1.runs/impl_1/design_1_power_routed.rpt 
+            - bitstreams/soc_bluespec_p2.*
+            - vivado/soc_bluespec_p2/soc_bluespec_p2.runs/impl_1/design_1_timing_summary_routed.rpt 
+            - vivado/soc_bluespec_p2/soc_bluespec_p2.runs/impl_1/design_1_utilization_placed.rpt 
+            - vivado/soc_bluespec_p2/soc_bluespec_p2.runs/impl_1/design_1_power_routed.rpt 
+            - bitstreams/soc_bluespec_p3.*
+            - vivado/soc_bluespec_p3/soc_bluespec_p3.runs/impl_1/design_1_timing_summary_routed.rpt 
+            - vivado/soc_bluespec_p3/soc_bluespec_p3.runs/impl_1/design_1_utilization_placed.rpt 
+            - vivado/soc_bluespec_p3/soc_bluespec_p3.runs/impl_1/design_1_power_routed.rpt 
+    only:
+      variables:
+      - $JOB_TYPE == "bitstream"
+
+
+#-----------------------------------------------------------------------------#
+#
+# Verilator simulation tests
+#
+#-----------------------------------------------------------------------------#
+sim_chisel_p1:
+  script:
+    - nix-shell --run './test_simulator.sh chisel_p1'
+  tags: ["verilator"]
+  only:
+    - develop
+  except:
+    - schedules
+  artifacts:
+      when: on_failure
+      expire_in: 1 week
+      paths:
+          - verilator_simulators/run/Logs/chisel_p1/
+
+sim_bluespec_p1:
+  script:
+    - nix-shell --run './test_simulator.sh bluespec_p1'
+  tags: ["verilator"]
+  only:
+    - develop
+  except:
+    - schedules
+  artifacts:
+      when: on_failure
+      expire_in: 1 week
+      paths:
+          - verilator_simulators/run/Logs/bluespec_p1/
+
+sim_chisel_p2:
+  script:
+    - nix-shell --run './test_simulator.sh chisel_p2'
+  tags: ["verilator"]
+  only:
+    - develop
+  except:
+    - schedules
+  artifacts:
+      when: on_failure
+      expire_in: 1 week
+      paths:
+          - verilator_simulators/run/Logs/chisel_p2/
+
+sim_bluespec_p2:
+  script:
+    - nix-shell --run './test_simulator.sh bluespec_p2'
+  tags: ["verilator"]
+  only:
+    - develop
+  except:
+    - schedules
+  artifacts:
+      when: on_failure
+      expire_in: 1 week
+      paths:
+          - verilator_simulators/run/Logs/bluespec_p2/

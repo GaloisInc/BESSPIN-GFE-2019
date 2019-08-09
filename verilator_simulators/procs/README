@@ -1,0 +1,3 @@
+This directory contains material specific to the various processors
+supported.  The processors themselves are found in the usual places within the
+gfe structure (bluespec-proceesors and chisel_processors).

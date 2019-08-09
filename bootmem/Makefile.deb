@@ -1,0 +1,37 @@
+CROSS_COMPILE?=riscv64-unknown-linux-gnu-
+
+CC?=$(CROSS_COMPILE)gcc
+LD?=$(CROSS_COMPILE)ld
+OBJCOPY?=$(CROSS_COMPILE)objcopy
+OBJDUMP?=$(CROSS_COMPILE)objdump
+
+KCONFIG_CONFIG=$(CURDIR)/debian-linux.config
+
+export CROSS_COMPILE KCONFIG_CONFIG
+
+PAYLOAD=debian.cpio.gz
+LINUX_SRC=../riscv-linux
+BBL_SRC=../../riscv-pk
+DEBIAN_DIR=../debian
+
+default: build-linux/vmlinux.text
+
+%.text: %
+	$(OBJDUMP) -dS $< > $@
+
+build-linux/.config: $(KCONFIG_CONFIG)
+	$(MAKE) -C $(LINUX_SRC) ARCH=riscv O=$(CURDIR)/build-linux olddefconfig
+
+build-linux/vmlinux: build-linux/.config $(PAYLOAD)
+	@echo "Building Linux with config: $$KCONFIG_CONFIG and $(PAYLOAD)"
+	$(MAKE) -C $(@D) ARCH=riscv O=$(CURDIR)/build-linux $(@F)
+
+debian.cpio.gz:
+	$(MAKE) -C $(DEBIAN_DIR)
+
+clean:
+	@rm -f debian.cpio.gz
+	@rm -rf build-linux
+	$(MAKE) -C $(DEBIAN_DIR) clean
+
+.PHONY: default clean

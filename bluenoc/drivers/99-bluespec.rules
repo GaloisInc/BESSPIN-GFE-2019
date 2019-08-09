@@ -1,0 +1,9 @@
+# UDev rules for setting up Bluespec emulation device drivers
+ACTION=="add",SUBSYSTEM=="pci",ATTR{vendor}=="0x1be7",ATTR{device}=="0xb100",RUN+="/sbin/modprobe -b bluenoc"
+ACTION=="add",SUBSYSTEM=="pci",ATTR{vendor}=="0x1be7",ATTR{device}=="0xb100",RUN+="/bin/chown root.plugdev /sys%p/resource0"
+ACTION=="add",SUBSYSTEM=="pci",ATTR{vendor}=="0x1be7",ATTR{device}=="0xb100",RUN+="/bin/chmod 0666 /sys%p/resource0"
+ACTION=="add",SUBSYSTEM=="pci",ATTR{vendor}=="0x1be7",ATTR{device}=="0xb100",RUN+="/bin/chown root.plugdev /sys%p/remove"
+ACTION=="add",SUBSYSTEM=="pci",ATTR{vendor}=="0x1be7",ATTR{device}=="0xb100",RUN+="/bin/chmod 0666 /sys%p/remove"
+ACTION=="add",SUBSYSTEM=="pci",ATTR{vendor}=="0x1be7",ATTR{device}=="0xb100",RUN+="/bin/ln -s /sys%p /dev/bluenoc_control"
+KERNEL=="bluenoc_*",MODE="666"
+SUBSYSTEM=="pci",RUN+="/bin/chmod 0222 /sys/bus/pci/rescan"
