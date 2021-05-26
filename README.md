@@ -7,6 +7,10 @@ Source files and build scripts for generating and testing the GFE for SSITH.
 Please refer to the [GFE System Description pdf](GFE_Rel4_System_Description.pdf)
 for a high-level overview of the system.
 
+This material is based upon work supported by the Defense Advanced Research Project Agency (DARPA) under Contract No. HR0011-18-C-0013.  Any opinions, findings, conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of DARPA.
+
+Distribution Statement "A" (Approved for Public Release, Distribution Unlimited)
+
 ## Table of contents ##
 
 - [Getting Started](#getting-started)
